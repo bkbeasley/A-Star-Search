@@ -1,4 +1,5 @@
 import sys, pygame
+import time
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -18,9 +19,9 @@ def main():
 	global PATH_NODES_X, PATH_NODES_Y
 
 	pygame.init()
+	pygame.display.set_caption("A* Search")
 	SCREEN = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 	CLOCK = pygame.time.Clock()
-	#SCREEN.fill(WHITE)
 
 	START_NODE_SET = False
 	START_NODE = {"x": None, "y": None, "f": None, "g": None, "h": None, "parent": None, "barrier": False}
@@ -107,7 +108,6 @@ def drawBarrier():
 	else:
 		remainder = coordinates[0] % CELL_SIZE
 		column = coordinates[0] - remainder
-	
 
 	remainder = coordinates[1] % CELL_SIZE
 	row = coordinates[1] - remainder
@@ -115,18 +115,12 @@ def drawBarrier():
 	rect = pygame.Rect(column, row, CELL_SIZE, CELL_SIZE)
 	
 	pygame.draw.rect(SCREEN, BLUE, rect)
+	pygame.draw.rect(SCREEN, BLACK, rect, 1)
 
 	x = int(column / CELL_SIZE)
 	y = int(row / CELL_SIZE)
 
 	MATRIX[x][y]['barrier'] = True
-	print(MATRIX[x][y])
-
-
-
-#def loadMatrix():
-	#matrix = [[0 for row in range(int(WINDOW_HEIGHT / 20))] for col in range(int(WINDOW_WIDTH / 20))]
-	#return matrix[0]
 
 def findNeighbors(node):
 	maxColSize = WINDOW_WIDTH / CELL_SIZE
@@ -234,10 +228,10 @@ def runAlgorithm():
 		#print("OPEN LIST AFTER: ", OPEN_LIST)
 		# Add current to closed list
 		CLOSED_LIST.append(current)
+		drawClosed(current["x"], current["y"])
 
 		#print("CLOSED LIST: ", CLOSED_LIST)
 		# If the shortest path has been found
-
 		if (current["x"] == END_NODE["x"] and current["y"] == END_NODE["y"]):
 			#findPath()
 			print("FINISHED!!!!!!!!!!")
@@ -263,8 +257,12 @@ def runAlgorithm():
 
 			if (isInOpenList(neighbor["x"], neighbor["y"]) == False):
 				OPEN_LIST.append(neighbor)
+				drawOpen(neighbor["x"], neighbor["y"])
+
 			#print("CURRENT NEIGHBOR: ", neighbor)
 		count += 1
+		
+
 
 def displayOpenNodes():
 	if not OPEN_LIST:
@@ -274,7 +272,31 @@ def displayOpenNodes():
 		#print("NODE: ", node)
 		rect = pygame.Rect(node["x"] * 20, node["y"] * 20, CELL_SIZE, CELL_SIZE)
 		pygame.draw.rect(SCREEN, GREEN, rect)
+	
 
+def drawOpen(x, y):
+	if (x == START_NODE["x"] and y == START_NODE["y"]):
+		return
+	elif (x == END_NODE["x"] and y == END_NODE["y"]):
+		return 
+
+	rect = pygame.Rect(x * 20, y * 20, CELL_SIZE, CELL_SIZE)
+	pygame.draw.rect(SCREEN, GREEN, rect)
+	pygame.draw.rect(SCREEN, BLACK, rect, 1)
+	pygame.display.update(rect)
+	time.sleep(.005)
+
+def drawClosed(x, y):
+	if (x == START_NODE["x"] and y == START_NODE["y"]):
+		return
+	elif (x == END_NODE["x"] and y == END_NODE["y"]):
+		return 
+
+	rect = pygame.Rect(x * 20, y * 20, CELL_SIZE, CELL_SIZE)
+	pygame.draw.rect(SCREEN, RED, rect)
+	pygame.draw.rect(SCREEN, BLACK, rect, 1)
+	pygame.display.update(rect)
+	time.sleep(.005)
 
 def isInOpenList(x, y):
 	for n in OPEN_LIST:
