@@ -3,9 +3,11 @@ import time
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-GREEN = (15, 242, 34)
-RED = (252, 3, 3)
+GREEN = (29, 238, 17)
+RED = (238, 17, 29)
 BLUE = (18, 235, 255)
+DARK_BLUE = (17, 29, 238)
+YELLOW = (226, 17, 238)
 WINDOW_WIDTH = 640
 WINDOW_HEIGHT= 480
 CELL_SIZE = 20
@@ -37,25 +39,35 @@ def main():
 	PATH_NODES_X = []
 	PATH_NODES_Y = []
 
+	SCREEN.fill(WHITE)
+
 	drawCells()
-	drawGrid()
+
 	MATRIX = initCells()
 
 	count = 0
 
+	foundCount = 0
+
 	while True:
-
-		#if (START_NODE_SET and END_NODE_SET):
-		""" if START_NODE_SET and END_NODE_SET:
-			if PATH_FOUND == False:
-				runAlgorithm()
-			else:
-				count += 1
-				if count == 1:
-					showFinalPath()
-					drawGrid() """
-
 		events = pygame.event.get()
+
+		if PATH_FOUND:
+			if (foundCount < 1):
+				showFinalPath()
+			foundCount += 1
+			for event in events:
+				if event.type == pygame.KEYDOWN:
+					if event.key == 114:
+						drawCells()
+						pygame.display.update()
+						foundCount = 0
+						reset()
+
+			#time.sleep(3)
+			#pygame.quit()
+			#sys.exit()
+
 		for event in events:
 			if event.type == pygame.KEYDOWN:
 				# If space bar is pressed down
@@ -66,26 +78,48 @@ def main():
 						count += 1
 						if count <= 1:
 							showFinalPath()
-							drawGrid()
+							#drawGrid()
+							count = 0
 
-			#If the user clicks the left mouse button down
-			if event.type == 5:
-				if START_NODE_SET == False or END_NODE_SET == False:
-					drawStartNode()
-				else:
-					drawBarrier()
+			# If the user clicks the left mouse button down
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				if pygame.mouse.get_pressed()[0]:
+					if START_NODE_SET == False or END_NODE_SET == False:
+						drawStartNode()
+					else:
+						if PATH_FOUND == False:
+							drawBarrier()
+			# Exit
 			if event.type == pygame.QUIT:
 				pygame.quit()
 				sys.exit()
 
 		pygame.display.update()
 
-
 def drawGrid():
 	for x in range(WINDOW_WIDTH):
 		for y in range(WINDOW_HEIGHT):
 			rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
 			pygame.draw.rect(SCREEN, BLACK, rect, 1)
+
+def reset():
+	global MATRIX
+	global PATH_FOUND
+	global OPEN_LIST, CLOSED_LIST
+	global START_NODE, END_NODE
+	global START_NODE_SET, END_NODE_SET
+	global PATH_NODES_X, PATH_NODES_Y
+
+	MATRIX = initCells()
+	PATH_FOUND = False
+	OPEN_LIST = []
+	CLOSED_LIST = []
+	START_NODE_SET = False
+	START_NODE = {"x": None, "y": None, "f": None, "g": None, "h": None, "parent": None, "barrier": False}
+	END_NODE = {"x": None, "y": None, "f": None, "g": None, "h": None, "parent": None, "barrier": False}
+	END_NODE_SET = False
+	PATH_NODES_X = []
+	PATH_NODES_Y = []
 
 def drawCells():
 	column = 0
@@ -94,6 +128,8 @@ def drawCells():
 		for y in range(WINDOW_HEIGHT):
 			rect = pygame.Rect(column, row, CELL_SIZE, CELL_SIZE)
 			pygame.draw.rect(SCREEN, WHITE, rect)
+			# TEST!!
+			pygame.draw.rect(SCREEN, BLACK, rect, 1)
 			row += CELL_SIZE
 		column += CELL_SIZE
 		row = 0
@@ -101,7 +137,7 @@ def drawCells():
 def drawBarrier():
 	# Find the column and row of the cell the user clicks on
 	coordinates = pygame.mouse.get_pos()
-	print("IN BARRIER: ", coordinates)
+	#print("IN BARRIER: ", coordinates)
 
 	if (coordinates[0] / CELL_SIZE) < 0:
 		column = 0
@@ -114,7 +150,7 @@ def drawBarrier():
 
 	rect = pygame.Rect(column, row, CELL_SIZE, CELL_SIZE)
 	
-	pygame.draw.rect(SCREEN, BLUE, rect)
+	pygame.draw.rect(SCREEN, BLACK, rect)
 	pygame.draw.rect(SCREEN, BLACK, rect, 1)
 
 	x = int(column / CELL_SIZE)
@@ -228,7 +264,12 @@ def runAlgorithm():
 		#print("OPEN LIST AFTER: ", OPEN_LIST)
 		# Add current to closed list
 		CLOSED_LIST.append(current)
-		drawClosed(current["x"], current["y"])
+		try:
+			drawClosed(current["x"], current["y"])
+		except KeyError:
+			# If there is no solution
+			PATH_FOUND = True
+			return
 
 		#print("CLOSED LIST: ", CLOSED_LIST)
 		# If the shortest path has been found
@@ -261,8 +302,6 @@ def runAlgorithm():
 
 			#print("CURRENT NEIGHBOR: ", neighbor)
 		count += 1
-		
-
 
 def displayOpenNodes():
 	if not OPEN_LIST:
@@ -313,12 +352,35 @@ def isInClosedList(x, y):
 	return False
 
 def showFinalPath():
+	drawCells()
+	#drawGrid()
+
+	cols = int(WINDOW_WIDTH / CELL_SIZE)
+	rows = int(WINDOW_HEIGHT / CELL_SIZE)
+
+	for j in range(rows):
+		for i in range(cols):
+			if MATRIX[i][j]['barrier'] == True:
+				rect = pygame.Rect(i * 20, j * 20, CELL_SIZE, CELL_SIZE)
+				pygame.draw.rect(SCREEN, BLACK, rect)
+				pygame.draw.rect(SCREEN, BLACK, rect, 1)
+
+
+	startRect = pygame.Rect(START_NODE["x"] * CELL_SIZE, START_NODE["y"] * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+	endRect = pygame.Rect(END_NODE["x"] * CELL_SIZE, END_NODE["y"] * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+	pygame.draw.rect(SCREEN, YELLOW, startRect)
+	pygame.draw.rect(SCREEN, BLACK, startRect, 1)
+	pygame.draw.rect(SCREEN, YELLOW, endRect)
+	pygame.draw.rect(SCREEN, BLACK, endRect, 1)
+	pygame.display.update()
 	for x,y in zip(PATH_NODES_X, PATH_NODES_Y):
 		if (x == START_NODE['x'] and y == START_NODE['y']):
 			continue
 		rect = pygame.Rect(x * 20, y * 20, CELL_SIZE, CELL_SIZE)
-		pygame.draw.rect(SCREEN, RED, rect)
-		
+		pygame.draw.rect(SCREEN, DARK_BLUE, rect)
+		pygame.draw.rect(SCREEN, BLACK, rect, 1)
+		pygame.display.update(rect)
+
 
 def displayPath(node):
 	x = node["x"]
@@ -360,14 +422,22 @@ def drawStartNode():
 	else:
 		remainder = coordinates[0] % CELL_SIZE
 		column = coordinates[0] - remainder
-	
 
 	remainder = coordinates[1] % CELL_SIZE
 	row = coordinates[1] - remainder
 
+	# If the user attempts to set the End Node to the same cell as the Start Node
+	if START_NODE_SET == True and END_NODE_SET == False:
+		x = int(column / CELL_SIZE)
+		y = int(row / CELL_SIZE)
+
+		if x == START_NODE["x"] and y == START_NODE["y"]:
+			return
+
 	rect = pygame.Rect(column, row, CELL_SIZE, CELL_SIZE)
 	
-	pygame.draw.rect(SCREEN, BLACK, rect)
+	pygame.draw.rect(SCREEN, YELLOW, rect)
+	pygame.draw.rect(SCREEN, BLACK, rect, 1)
 
 	if START_NODE_SET == False:
 		START_NODE_SET = True
