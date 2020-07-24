@@ -3,7 +3,7 @@
 Search Algorithm.</p>
 
 ## Demo
-![Demo Image](https://github.com/bkbeasley/A-Star-Search/images/demo.gif)
+![Demo Image](https://github.com/bkbeasley/A-Star-Search/blob/master/images/demo.gif)
 
 ## Legend
 <p>:green_square: Node in the open list <br />
