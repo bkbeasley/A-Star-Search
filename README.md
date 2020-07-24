@@ -1,4 +1,9 @@
 # A* Search
+<p>Finds the shortest path to a destination cell on a grid using the A*
+Search Algorithm.</p>
+
+## Demo
+![Demo Image](https://github.com/bkbeasley/A-Star-Search/images/demo.gif)
 
 ## Legend
 <p>:green_square: Node in the open list <br />
